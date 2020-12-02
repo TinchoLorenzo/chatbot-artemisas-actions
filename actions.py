@@ -19,7 +19,7 @@ url = 'https://botdisenio.herokuapp.com/webhooks/my_connector/webhook/'
 client = pymongo.MongoClient("localhost", 27017)
 db = client.rasa
 
-def subscribe_connection_request:
+def subscribe_connection_request():
     connection = pika.BlockingConnection(
     pika.URLParameters("amqps://urfvnqok:kDPF6YteXqwoKytSirWyl_HAisUjTGYl@woodpecker.rmq.cloudamqp.com/urfvnqok"))
     channel = connection.channel()
