@@ -37,12 +37,10 @@ def subscribe_connection_request():
 subscribe_connection_request()
 
 def callback(ch, method, properties, body):
-	obj = json.loads(body.decode())
+    print(body.decode())
+    obj = json.loads(body.decode())
     url = obj['url']
-    myjson = {
-        "message": "hi",
-        "sender": "Chatbot-Artemisas"
-    }
+    myjson = {"message": "hi","sender": "Chatbot-Artemisas"}
     requests_response = requests.post(url, json = myjson)
     pasarDatos(url, "TiempoLecturaUserStory")
     pasarDatos(url, "TiempoTrabajoUserStory")
