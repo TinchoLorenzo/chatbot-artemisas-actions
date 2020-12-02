@@ -17,12 +17,13 @@ import pymongo
 import pika
 
 url = 'https://botdisenio.herokuapp.com/webhooks/my_connector/webhook/' 
-#client = pymongo.MongoClient("mongodb+srv://mlorenzo:12345qwert@cluster0.5gulk.mongodb.net/")
-#db = client['mydatabase']
+client = pymongo.MongoClient("mongodb+srv://mlorenzo:12345qwert@cluster0.5gulk.mongodb.net/")
+db = client['mydatabase']
 
 
 
 def pasarDatos(url, tipo):
+    coll = db.eventos
     myjsonL ={ "nombre" : tipo, 'Items':[]}
     if (tipo == "TiempoTrabajoUserStory"):
         tareas = {}
