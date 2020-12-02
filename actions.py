@@ -93,10 +93,10 @@ def start_consumer():
         url="https://botdisenio.herokuapp.com/webhooks/my_connector/webhook/"
         myjson = {"message": "Bruno como andas ","sender": "Chatbot-Artemisas"}
         requests_response = requests.post(url, json = myjson)
-        pasarDatos(url, "TiempoLecturaUserStory")
-        pasarDatos(url, "TiempoTrabajoUserStory")
-        pasarDatos(url, "Recurso")
-        pasarDatos(url, "ParticipacionesMeetings")
+        #pasarDatos(url, "TiempoLecturaUserStory")
+        #pasarDatos(url, "TiempoTrabajoUserStory")
+        #pasarDatos(url, "Recurso")
+        #pasarDatos(url, "ParticipacionesMeetings")
 
     with PikaMassenger() as consumer:
         print("startin pikamassenger")
