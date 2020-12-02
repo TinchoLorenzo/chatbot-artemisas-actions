@@ -80,12 +80,14 @@ class PikaMassenger():
     def __init__(self, *args, **kwargs):
         self.conn = pika.BlockingConnection(pika.URLParameters("amqps://urfvnqok:kDPF6YteXqwoKytSirWyl_HAisUjTGYl@woodpecker.rmq.cloudamqp.com/urfvnqok"))
         self.channel = self.conn.channel()
+        print("init")
         #self.channel.exchange_declare(exchange=self.exchange_name, exchange_type='topic')
 
     def consume(self, keys, callback):
         result = self.channel.queue_declare('', exclusive=True)
         queue_name = result.method.queue
         for key in keys:
+            print("inside keys")
             self.channel.queue_bind(
                 exchange=self.exchange_name, 
                 queue=queue_name, 
@@ -121,6 +123,7 @@ def start_consumer():
         #pasarDatos(url, "ParticipacionesMeetings")
 
     with PikaMassenger() as consumer:
+        print("startin pikamassenger")
         consumer.consume(keys=["Chatbot.PedidoConeccion"], callback=callback)
 
 
