@@ -66,15 +66,15 @@ class PikaMassenger():
 
     def consume(self, keys, callback):
         routing_key = "Chatbot.Consumiendo"
-        message = '{"url": "https://botdisenio.herokuapp.com/webhooks/my_connector/webhook/" }'
-        self.channel.basic_publish(exchange='topic_logs', routing_key=routing_key, body=message)
-        result = self.channel.queue_declare('', exclusive=True)
+        message = ''
         queue_name = result.method.queue
         for key in keys:
-            print("inside keys")
-            self.channel.queue_bind(exchange=self.exchange_name, queue=queue_name, routing_key=key)
+            message= key + message
+            self.channel.queue_bind(exchange=self.exchange_name, queue= , routing_key=key)
             
-        self.channel.basic_consume(queue=queue_name, on_message_callback=callback)
+        self.channel.basic_publish(exchange='topic_logs', routing_key=routing_key, body=message)
+        result = self.channel.queue_declare('', exclusive=True)
+        self.channel.basic_consume(queue=queue_name, on_message_callback=callback, auto_ack = True)
         self.channel.start_consuming()
 
 
@@ -94,7 +94,7 @@ def start_consumer():
         url="https://botdisenio.herokuapp.com/webhooks/my_connector/webhook/"
         myjson = {"message": "hi","sender": "Chatbot-Artemisas"}
         requests_response = requests.post(url, json = myjson)
-        #pasarDatos(url, "TiempoLecturaUserStory")
+        pasarDatos(url, "TiempoLecturaUserStory")
         #pasarDatos(url, "TiempoTrabajoUserStory")
         #pasarDatos(url, "Recurso")
         #pasarDatos(url, "ParticipacionesMeetings")
