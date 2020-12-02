@@ -1,0 +1,40 @@
+{
+    "sprint":{
+        "numero": 2,
+        "equipos":[{
+            "grupo": "Project Leader",
+            "lider": "Boulanger Magali",
+            "miembros":[]
+            },
+            {
+            "grupo": "Eventos",
+            "lider": "Corino Joshua",
+            "miembros":["Martin Lorenzo","Mauricio Álvarez","Santiago Ithurralde"]
+            },
+            {
+            "grupo": "Arquitectura de chatbots",
+            "lider": "Correa Juan Pablo",
+            "miembros":["Jorge Berclaz","Mainque Menjoulou","Carlos Aranda"]
+            },
+            {
+            "grupo": "Speech to text",
+            "lider": "Cabrera Claudio",
+            "miembros":["Ariel Bertino","Brian Lugo","Horacio Casado"]
+            },
+            {
+            "grupo": "Chat de Texto",
+            "lider": "Alvarez y Martinez Dana",
+            "miembros":["Matias Morandeira"]
+            },
+            {
+            "grupo": "Artefactos",
+            "lider": "Barcelo Sofia",
+            "miembros":["Federico Gregorio", "Juan Cruz Mouhape", "Benjamín Figeiredo", "Gabriel González", "Valentina Bessonart", "Iván Alberghini"]
+            },
+            {
+            "grupo": "Base de Datos",
+            "lider": "Behotas Agustina",
+            "miembros":["Benavidez Leonel"]
+            }]
+    }
+}

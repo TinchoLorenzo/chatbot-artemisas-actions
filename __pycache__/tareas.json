@@ -1,0 +1,29 @@
+{
+    "to_do": [{
+        "nombre": "Inclusion de Rasa en el proyecto",
+        "descripcion":"Incorporar al proyecto lo trabajado en Rasa",
+        "criterios de aceptacion": ["Los chatbots se incluyen al repositorio del proyecto"]
+    }],
+    "in_progress":[{
+        "nombre": "Desarrollar chatbot general para el chat de texto",
+        "descripcion":"Se trata de desarrollar un chatbot para el chat de texto de la aplicacion, con conocimientos generales. Por ejemplo donde se encuentra cada sala y para que es cada una",
+        "criterios de aceptacion": ["Se le puede consultar acerca las salas y su funcionamiento","Se le puede consultar por las tareas", "Se le puede consultar que miembros del equipo estan online"]
+    },{
+        "nombre": "Desarrollar chatbot encargado de realizar test de Zulliger",
+        "descripcion":"Chatbot que se encargue de realizar las preguntas del test de Zulliger y volcar los resultados sobre la base de datos para que luego puedan ser analizados",
+        "criterios de aceptacion": ["El chatbot se encarga de hacer las preguntas del test y guardar las respuestas"]
+    },{
+        "nombre": "Desarrollar bot especializado en el proyecto y artefactos",
+        "descripcion":"Chatbot que sepa sobre los artefactos que se pueden utilizar y la funcion de cada uno, y tambien que pueda consultar a la base de datos cosas puntuales del proyecto (Ej. que tarea tengo asignada)",
+        "criterios de aceptacion": ["El chatbot puede contestar para que se utiliza cada artefacto","El chatbot conoce los lideres de cada sector"]
+    }],
+    "done":[{
+        "nombre": "Definir diseño jerarquico de los chatbots",
+        "descripcion":"Se debe definir la cantidad de chatbots en el proyecto y su alcance, ya sea de ubicacion como de conocimientos a la hora de responder. Tambien la forma en que se comunicaran",
+        "criterios de aceptacion": []
+    },{
+        "nombre": "Reunion de inicio de sprint",
+        "descripcion":"Reunion inicial para puesta en comun y division de sub-tareas",
+        "criterios de aceptacion": ["Salir de la reunion con la misma percepcion de las tareas"]
+    }]
+}

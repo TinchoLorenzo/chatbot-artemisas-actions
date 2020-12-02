@@ -1,0 +1,15 @@
+{
+    "online": [{
+        "name": "Magali",
+        "sala": "Sala de conferencias"
+    }, {
+        "name": "Marcelo",
+        "sala": "Sala de programacion"
+    }, {
+        "name": "Matias",
+        "sala": "Sala de programacion"
+    }, {
+        "name": "Juan Pablo",
+        "sala": "Deposito"
+    }]
+}
