@@ -80,7 +80,7 @@ class PikaMassenger():
     def __init__(self, *args, **kwargs):
         self.conn = pika.BlockingConnection(pika.URLParameters("amqps://urfvnqok:kDPF6YteXqwoKytSirWyl_HAisUjTGYl@woodpecker.rmq.cloudamqp.com/urfvnqok"))
         self.channel = self.conn.channel()
-        #self.channel.exchange_declare(exchange=self.exchange_name, exchange_type='topic')
+        self.channel.exchange_declare(exchange=self.exchange_name, exchange_type='topic')
 
     def consume(self, keys, callback):
         result = self.channel.queue_declare('', exclusive=True)
@@ -115,10 +115,10 @@ def start_consumer():
         url="https://botdisenio.herokuapp.com/webhooks/my_connector/webhook/"
         myjson = {"message": "hi","sender": "Chatbot-Artemisas"}
         requests_response = requests.post(url, json = myjson)
-        pasarDatos(url, "TiempoLecturaUserStory")
-        pasarDatos(url, "TiempoTrabajoUserStory")
-        pasarDatos(url, "Recurso")
-        pasarDatos(url, "ParticipacionesMeetings")
+        #pasarDatos(url, "TiempoLecturaUserStory")
+        #pasarDatos(url, "TiempoTrabajoUserStory")
+        #pasarDatos(url, "Recurso")
+        #pasarDatos(url, "ParticipacionesMeetings")
 
     with PikaMassenger() as consumer:
         consumer.consume(keys=["Chatbot.PedidoConeccion"], callback=callback)
