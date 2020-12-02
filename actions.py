@@ -82,21 +82,6 @@ def subscribe_connection_request():
     
 subscribe_connection_request()
 
-class ActionHelloWorld(Action):
-
-	def name(self) -> Text:
-		return "action_hello_world"
-	def run(self, dispatcher: CollectingDispatcher,
-	tracker: Tracker,
-	domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
-		data = {'sender':'','message':'bye'}
-		json_dump = json.dumps(data) 		
-		r = requests.post("http://localhost:8080/webhooks/rest/webhook", json_dump) 
-		dispatcher.utter_message(text="Se ejecuto accion hello world: {}!".format(r.text))
-	
-		return []
-
-
 class ActionOnlineMembers(Action):
 
 	def name(self) -> Text:
