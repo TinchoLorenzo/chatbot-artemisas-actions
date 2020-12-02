@@ -14,6 +14,7 @@ from datetime import datetime, date, time, timedelta
 import requests
 import json
 import pymongo
+import pika
 
 url = 'https://botdisenio.herokuapp.com/webhooks/my_connector/webhook/' 
 client = pymongo.MongoClient("localhost", 27017)
