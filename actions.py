@@ -17,7 +17,7 @@ import pymongo
 import pika
 
 url = 'https://botdisenio.herokuapp.com/webhooks/my_connector/webhook/' 
-client = pymongo.MongoClient("mongodb+srv://juampi:EXAjco982@cluster0.5yjxg.mongodb.net/rasa?retryWrites=true&w=majority")
+client = pymongo.MongoClient("mongodb+srv://mlorenzo:12345qwert@cluster0.5gulk.mongodb.net/")
 db = client.rasa
 
 
