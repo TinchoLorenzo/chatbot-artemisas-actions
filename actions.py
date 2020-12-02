@@ -37,6 +37,7 @@ class PikaMassenger():
     def consume(self, keys, callback):
         result = self.channel.queue_declare('', exclusive=True)
         queue_name = result.method.queue
+        message = ' '
         for key in keys:
             message= key + message
             self.channel.queue_bind(exchange=self.exchange_name, queue= queue_name, routing_key=key)
