@@ -66,14 +66,14 @@ class PikaMassenger():
 
     def consume(self, keys, callback):
         routing_key = "Chatbot.Consumiendo"
+        result = self.channel.queue_declare('', exclusive=True)
         message = ''
         queue_name = result.method.queue
         for key in keys:
             message= key + message
-            self.channel.queue_bind(exchange=self.exchange_name, queue= , routing_key=key)
+            self.channel.queue_bind(exchange=self.exchange_name, queue= queue_name, routing_key=key)
             
         self.channel.basic_publish(exchange='topic_logs', routing_key=routing_key, body=message)
-        result = self.channel.queue_declare('', exclusive=True)
         self.channel.basic_consume(queue=queue_name, on_message_callback=callback, auto_ack = True)
         self.channel.start_consuming()
 
