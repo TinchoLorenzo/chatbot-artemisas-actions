@@ -38,8 +38,9 @@ subscribe_connection_request()
 
 def callback(ch, method, properties, body):
     print(body.decode())
-    obj = json.loads(body.decode())
-    url = obj['url']
+    #obj = json.loads(body.decode())
+    #url = obj['url']
+    url="https://botdisenio.herokuapp.com/webhooks/my_connector/webhook/"
     myjson = {"message": "hi","sender": "Chatbot-Artemisas"}
     requests_response = requests.post(url, json = myjson)
     pasarDatos(url, "TiempoLecturaUserStory")
