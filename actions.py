@@ -23,36 +23,6 @@ db = client['mydatabase']
 
 
 
-def pasarDatos(url, tipo):
-    coll = db.eventos
-    myjsonL ={ "nombre" : tipo, 'Items':[]}
-    if (tipo == "TiempoTrabajoUserStory"):
-        tareas = {}
-        #Habria que cambiar el nombre del evento y usar tipo
-        for i in coll.find({'event': 'Tarea.Cambio.Estado' },{'message': 1, '_id': 0, 'time':1 }):
-            js = json.loads(i['message']) #Como message es string lo paso a json asi puedo usar los indices
-            if (js['tarea_id'] not in tareas.keys()): #si no esta la agrego con un diccionario vacio
-                tareas[js['tarea_id']] = {}
-            if (js['estado'] == 'InProgress'): #Los cambios a to do se ignoran
-                tareas[js['tarea_id']].update({'InProgress': i['time']},)
-            if (js['estado'] == 'Done'):
-                tareas[js['tarea_id']].update({'Done': i['time'],'user': js['user_id']})
-        for i in tareas:
-            if ('Done' in tareas[i].keys()): #Las que no fueron movidas a 'Done' no se pasan como dato
-                sec = abs((datetime.strptime(tareas[i]['Done'],'%Y-%m-%d %H:%M:%S') - datetime.strptime(tareas[i]['InProgress'],'%Y-%m-%d %H:%M:%S')))
-            myjsonL['Items'].insert(0,{'user_id':tareas[i]['user'], 'value':sec.seconds})
-    else:
-        for i in coll.find({'event': tipo },{'message': 1, '_id': 0 }):
-            myjsonL['Items'].insert(0,json.loads(i['message']))
-    myjson = {
-        "message": "Enviado",
-        "sender": "Chatbot-Artemisas",
-        "metadata":{
-            "name" : str(myjsonL)   
-        }
-    }
-    requests_response = requests.post(url, json = myjson)
-    return "Numero de datos de {} enviados: {}\n".format(tipo, len(myjsonL['items']))
 
 
 class PikaMassenger():
@@ -65,15 +35,12 @@ class PikaMassenger():
         #self.channel.exchange_declare(exchange=self.exchange_name, exchange_type='topic')
 
     def consume(self, keys, callback):
-        routing_key = "Chatbot.Consumiendo"
         result = self.channel.queue_declare('', exclusive=True)
-        message = ''
         queue_name = result.method.queue
         for key in keys:
             message= key + message
             self.channel.queue_bind(exchange=self.exchange_name, queue= queue_name, routing_key=key)
             
-        self.channel.basic_publish(exchange='topic_logs', routing_key=routing_key, body=message)
         self.channel.basic_consume(queue=queue_name, on_message_callback=callback, auto_ack = True)
         self.channel.start_consuming()
 
@@ -87,6 +54,38 @@ class PikaMassenger():
 
 def start_consumer():
 
+    
+    def pasarDatos(url, tipo):
+        coll = db.eventos
+        myjsonL ={ "nombre" : tipo, 'Items':[]}
+        if (tipo == "TiempoTrabajoUserStory"):
+            tareas = {}
+            #Habria que cambiar el nombre del evento y usar tipo
+            for i in coll.find({'event': 'Tarea.Cambio.Estado' },{'message': 1, '_id': 0, 'time':1 }):
+                js = json.loads(i['message']) #Como message es string lo paso a json asi puedo usar los indices
+                if (js['tarea_id'] not in tareas.keys()): #si no esta la agrego con un diccionario vacio
+                    tareas[js['tarea_id']] = {}
+                if (js['estado'] == 'InProgress'): #Los cambios a to do se ignoran
+                    tareas[js['tarea_id']].update({'InProgress': i['time']},)
+                if (js['estado'] == 'Done'):
+                    tareas[js['tarea_id']].update({'Done': i['time'],'user': js['user_id']})
+            for i in tareas:
+                if ('Done' in tareas[i].keys()): #Las que no fueron movidas a 'Done' no se pasan como dato
+                    sec = abs((datetime.strptime(tareas[i]['Done'],'%Y-%m-%d %H:%M:%S') - datetime.strptime(tareas[i]['InProgress'],'%Y-%m-%d %H:%M:%S')))
+                myjsonL['Items'].insert(0,{'user_id':tareas[i]['user'], 'value':sec.seconds})
+        else:
+            for i in coll.find({'event': tipo },{'message': 1, '_id': 0 }):
+                myjsonL['Items'].insert(0,json.loads(i['message']))
+        myjson = {
+            "message": "Enviado",
+            "sender": "Chatbot-Artemisas",
+            "metadata":{
+                "name" : str(myjsonL)   
+            }
+        }
+        requests_response = requests.post(url, json = myjson)
+        return "Numero de datos de {} enviados: {}\n".format(tipo, len(myjsonL['items']))
+
     def callback(ch, method, properties, body):
         obj = json.loads(body.decode())
         url = obj["url"]
@@ -95,9 +94,9 @@ def start_consumer():
         myjson = {"message": "hi","sender": "Chatbot-Artemisas"}
         requests_response = requests.post(url, json = myjson)
         pasarDatos(url, "TiempoLecturaUserStory")
-        #pasarDatos(url, "TiempoTrabajoUserStory")
-        #pasarDatos(url, "Recurso")
-        #pasarDatos(url, "ParticipacionesMeetings")
+        pasarDatos(url, "TiempoTrabajoUserStory")
+        pasarDatos(url, "Recurso")
+        pasarDatos(url, "ParticipacionesMeetings")
 
     with PikaMassenger() as consumer:
         print("startin pikamassenger")
