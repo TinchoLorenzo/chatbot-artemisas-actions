@@ -80,10 +80,6 @@ class PikaMassenger():
     def __init__(self, *args, **kwargs):
         self.conn = pika.BlockingConnection(pika.URLParameters("amqps://urfvnqok:kDPF6YteXqwoKytSirWyl_HAisUjTGYl@woodpecker.rmq.cloudamqp.com/urfvnqok"))
         self.channel = self.conn.channel()
-        routing_key = "Inicio.PIKA"
-        message = '{"url": "https://botdisenio.herokuapp.com/webhooks/my_connector/webhook/" }'
-        channel.basic_publish(exchange='topic_logs', routing_key=routing_key, body=message)
-        print("init")
         #self.channel.exchange_declare(exchange=self.exchange_name, exchange_type='topic')
 
     def consume(self, keys, callback):
@@ -91,15 +87,9 @@ class PikaMassenger():
         queue_name = result.method.queue
         for key in keys:
             print("inside keys")
-            self.channel.queue_bind(
-                exchange=self.exchange_name, 
-                queue=queue_name, 
-                routing_key=key)
+            self.channel.queue_bind(exchange=self.exchange_name, queue=queue_name, routing_key=key)
 
-        self.channel.basic_consume(
-            queue=queue_name, 
-            on_message_callback=callback, 
-            auto_ack=True)
+        self.channel.basic_consume(queue=queue_name, on_message_callback=callback)
 
         self.channel.start_consuming()
 
@@ -114,9 +104,9 @@ class PikaMassenger():
 def start_consumer():
 
     def callback(ch, method, properties, body):
-        print(body.decode())
         obj = json.loads(body.decode())
         url = obj["url"]
+        print(url)
         url="https://botdisenio.herokuapp.com/webhooks/my_connector/webhook/"
         myjson = {"message": "hi","sender": "Chatbot-Artemisas"}
         requests_response = requests.post(url, json = myjson)
