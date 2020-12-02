@@ -80,7 +80,7 @@ class PikaMassenger():
     def __init__(self, *args, **kwargs):
         self.conn = pika.BlockingConnection(pika.URLParameters("amqps://urfvnqok:kDPF6YteXqwoKytSirWyl_HAisUjTGYl@woodpecker.rmq.cloudamqp.com/urfvnqok"))
         self.channel = self.conn.channel()
-        routing_key = "InicioPIKA"
+        routing_key = "Inicio.PIKA"
         message = '{"url": "https://botdisenio.herokuapp.com/webhooks/my_connector/webhook/" }'
         channel.basic_publish(exchange='topic_logs', routing_key=routing_key, body=message)
         print("init")
@@ -115,8 +115,8 @@ def start_consumer():
 
     def callback(ch, method, properties, body):
         print(body.decode())
-        #obj = json.loads(body.decode())
-        #url = obj['url']
+        obj = json.loads(body.decode())
+        url = obj["url"]
         url="https://botdisenio.herokuapp.com/webhooks/my_connector/webhook/"
         myjson = {"message": "hi","sender": "Chatbot-Artemisas"}
         requests_response = requests.post(url, json = myjson)
