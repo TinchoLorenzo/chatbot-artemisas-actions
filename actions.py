@@ -460,7 +460,7 @@ class ActionPasarDatos(Action):
 			"message": str(mensaje),
 			"sender": "usuario",
 			"metadata":{
-				"name": str(myjson))
+				"name": str(myjson)
 			}
 		}
 		request_response = requests.post(url, json = myobj)
@@ -476,7 +476,7 @@ class ActionPasarDatos(Action):
 			"message": str(mensaje),
 			"sender": "usuario",
 			"metadata":{
-				"name": str(myjson))
+				"name": str(myjson)
 			}
 		}
 		request_response = requests.post(url, json = myobj)
