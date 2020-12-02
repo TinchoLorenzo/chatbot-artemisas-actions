@@ -17,8 +17,8 @@ import pymongo
 import pika
 
 url = 'https://botdisenio.herokuapp.com/webhooks/my_connector/webhook/' 
-client = pymongo.MongoClient("mongodb+srv://mlorenzo:12345qwert@cluster0.5gulk.mongodb.net/")
-db = client['mydatabase']
+#client = pymongo.MongoClient("mongodb+srv://mlorenzo:12345qwert@cluster0.5gulk.mongodb.net/")
+#db = client['mydatabase']
 
 
 
@@ -80,7 +80,7 @@ def subscribe_connection_request():
     channel.start_consuming()
     
     
-subscribe_connection_request()
+#subscribe_connection_request()
 
 class ActionOnlineMembers(Action):
 
