@@ -55,24 +55,6 @@ def pasarDatos(url, tipo):
     return "Numero de datos de {} enviados: {}\n".format(tipo, len(myjsonL['items']))
 
 
-'''    
-def subscribe_connection_request():
-    connection = pika.BlockingConnection(pika.URLParameters("amqps://urfvnqok:kDPF6YteXqwoKytSirWyl_HAisUjTGYl@woodpecker.rmq.cloudamqp.com/urfvnqok"))
-    channel = connection.channel()
-
-    #channel.exchange_declare(exchange='topic_logs', exchange_type='topic', durable=True)
-
-    result = channel.queue_declare(queue='', exclusive=True)
-    queue_name = result.method.queue
-
-    channel.queue_bind(exchange='topic_logs', queue=queue_name, routing_key="Chatbot.PedidoConeccion")        
-    channel.basic_consume(queue=queue_name, on_message_callback=callback, auto_ack=True)
-
-    channel.start_consuming()
-    
-    
-subscribe_connection_request()
-'''
 class PikaMassenger():
 
     exchange_name = 'topic_logs'
@@ -83,14 +65,16 @@ class PikaMassenger():
         #self.channel.exchange_declare(exchange=self.exchange_name, exchange_type='topic')
 
     def consume(self, keys, callback):
+        routing_key = "Chatbot.Consumiendo"
+        message = '{"url": "https://botdisenio.herokuapp.com/webhooks/my_connector/webhook/" }'
+        self.channel.basic_publish(exchange='topic_logs', routing_key=routing_key, body=message)
         result = self.channel.queue_declare('', exclusive=True)
         queue_name = result.method.queue
         for key in keys:
             print("inside keys")
             self.channel.queue_bind(exchange=self.exchange_name, queue=queue_name, routing_key=key)
-
+            
         self.channel.basic_consume(queue=queue_name, on_message_callback=callback)
-
         self.channel.start_consuming()
 
 
