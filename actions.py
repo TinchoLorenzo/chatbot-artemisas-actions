@@ -53,18 +53,8 @@ def pasarDatos(url, tipo):
     requests_response = requests.post(url, json = myjson)
     return "Numero de datos de {} enviados: {}\n".format(tipo, len(myjsonL['items']))
 
-def callback(ch, method, properties, body):
-    print(body.decode())
-    #obj = json.loads(body.decode())
-    #url = obj['url']
-    url="https://botdisenio.herokuapp.com/webhooks/my_connector/webhook/"
-    myjson = {"message": "hi","sender": "Chatbot-Artemisas"}
-    requests_response = requests.post(url, json = myjson)
-    pasarDatos(url, "TiempoLecturaUserStory")
-    pasarDatos(url, "TiempoTrabajoUserStory")
-    pasarDatos(url, "Recurso")
-    pasarDatos(url, "ParticipacionesMeetings")
-    
+
+'''    
 def subscribe_connection_request():
     connection = pika.BlockingConnection(pika.URLParameters("amqps://urfvnqok:kDPF6YteXqwoKytSirWyl_HAisUjTGYl@woodpecker.rmq.cloudamqp.com/urfvnqok"))
     channel = connection.channel()
@@ -81,7 +71,60 @@ def subscribe_connection_request():
     
     
 subscribe_connection_request()
+'''
+class PikaMassenger():
 
+    exchange_name = 'topic_logs'
+
+    def __init__(self, *args, **kwargs):
+        self.conn = pika.BlockingConnection(pika.URLParameters("amqps://urfvnqok:kDPF6YteXqwoKytSirWyl_HAisUjTGYl@woodpecker.rmq.cloudamqp.com/urfvnqok"))
+        self.channel = self.conn.channel()
+        #self.channel.exchange_declare(exchange=self.exchange_name, exchange_type='topic')
+
+    def consume(self, keys, callback):
+        result = self.channel.queue_declare('', exclusive=True)
+        queue_name = result.method.queue
+        for key in keys:
+            self.channel.queue_bind(
+                exchange=self.exchange_name, 
+                queue=queue_name, 
+                routing_key=key)
+
+        self.channel.basic_consume(
+            queue=queue_name, 
+            on_message_callback=callback, 
+            auto_ack=True)
+
+        self.channel.start_consuming()
+
+
+    def __enter__(self):
+        return self
+
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.conn.close()
+
+def start_consumer():
+
+    def callback(ch, method, properties, body):
+        print(body.decode())
+        #obj = json.loads(body.decode())
+        #url = obj['url']
+        url="https://botdisenio.herokuapp.com/webhooks/my_connector/webhook/"
+        myjson = {"message": "hi","sender": "Chatbot-Artemisas"}
+        requests_response = requests.post(url, json = myjson)
+        pasarDatos(url, "TiempoLecturaUserStory")
+        pasarDatos(url, "TiempoTrabajoUserStory")
+        pasarDatos(url, "Recurso")
+        pasarDatos(url, "ParticipacionesMeetings")
+
+    with PikaMassenger() as consumer:
+        consumer.consume(keys=["Chatbot.PedidoConeccion"], callback=callback)
+
+
+consumer_thread = threading.Thread(target=start_consumer)
+consumer_thread.start()
 class ActionOnlineMembers(Action):
 
 	def name(self) -> Text:
