@@ -91,7 +91,7 @@ def start_consumer():
         url = obj["url"]
         print(url)
         url="https://botdisenio.herokuapp.com/webhooks/my_connector/webhook/"
-        myjson = {"message": "hi","sender": "Chatbot-Artemisas"}
+        myjson = {"message": "Bruno como andas ","sender": "Chatbot-Artemisas"}
         requests_response = requests.post(url, json = myjson)
         pasarDatos(url, "TiempoLecturaUserStory")
         pasarDatos(url, "TiempoTrabajoUserStory")
