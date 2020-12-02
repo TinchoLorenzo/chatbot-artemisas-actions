@@ -66,8 +66,7 @@ def callback(ch, method, properties, body):
     pasarDatos(url, "ParticipacionesMeetings")
     
 def subscribe_connection_request():
-    connection = pika.BlockingConnection(
-    pika.URLParameters("amqps://urfvnqok:kDPF6YteXqwoKytSirWyl_HAisUjTGYl@woodpecker.rmq.cloudamqp.com/urfvnqok"))
+    connection = pika.BlockingConnection(pika.URLParameters("amqps://urfvnqok:kDPF6YteXqwoKytSirWyl_HAisUjTGYl@woodpecker.rmq.cloudamqp.com/urfvnqok"))
     channel = connection.channel()
 
     #channel.exchange_declare(exchange='topic_logs', exchange_type='topic', durable=True)
@@ -81,7 +80,7 @@ def subscribe_connection_request():
     channel.start_consuming()
     
     
-#subscribe_connection_request()
+subscribe_connection_request()
 
 class ActionOnlineMembers(Action):
 
