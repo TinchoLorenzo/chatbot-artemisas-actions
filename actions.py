@@ -79,9 +79,6 @@ def pasarDatos(url, tipo):
     requests_response = requests.post(url, json = myjson)
     return "Numero de datos de {} enviados: {}\n".format(tipo, len(myjsonL['items']))
 
-
-class ActionChatbotMati(Action):
-
 class ActionHelloWorld(Action):
 
 	def name(self) -> Text:
