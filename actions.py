@@ -62,7 +62,6 @@ def start_consumer():
 	def callback(ch, method, properties, body):
 		obj = json.loads(body.decode())
 		url = obj["url"]
-        LOGGER.info(url)
 		coll = db.events
 		url = "https://botdisenio.herokuapp.com/webhooks/my_connector/webhook/"
 		myjson = {"message": "Hola", "sender": "Chatbot-Artemisas"}
