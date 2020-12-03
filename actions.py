@@ -29,6 +29,7 @@ class PikaMassenger():
     exchange_name = 'topic_logs'
 
     def __init__(self, *args, **kwargs):
+        pass
         #self.conn = pika.BlockingConnection(pika.URLParameters("amqps://urfvnqok:kDPF6YteXqwoKytSirWyl_HAisUjTGYl@woodpecker.rmq.cloudamqp.com/urfvnqok"))
         #self.channel = self.conn.channel()
         # self.channel.exchange_declare(exchange=self.exchange_name, exchange_type='topic')
