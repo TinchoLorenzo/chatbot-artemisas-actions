@@ -29,26 +29,29 @@ class PikaMassenger():
     exchange_name = 'topic_logs'
 
     def __init__(self, *args, **kwargs):
-        self.conn = pika.BlockingConnection(pika.URLParameters("amqps://urfvnqok:kDPF6YteXqwoKytSirWyl_HAisUjTGYl@woodpecker.rmq.cloudamqp.com/urfvnqok"))
-        self.channel = self.conn.channel()
+        #self.conn = pika.BlockingConnection(pika.URLParameters("amqps://urfvnqok:kDPF6YteXqwoKytSirWyl_HAisUjTGYl@woodpecker.rmq.cloudamqp.com/urfvnqok"))
+        #self.channel = self.conn.channel()
         # self.channel.exchange_declare(exchange=self.exchange_name, exchange_type='topic')
 
     def consume(self, keys, callback):
-        result = self.channel.queue_declare('', exclusive=True)
-        queue_name = result.method.queue
-        message = ' '
-        for key in keys:
-            message = key + message
-            self.channel.queue_bind(exchange=self.exchange_name, queue=queue_name, routing_key=key)
+        while True:
+            self.conn = pika.BlockingConnection(pika.URLParameters("amqps://urfvnqok:kDPF6YteXqwoKytSirWyl_HAisUjTGYl@woodpecker.rmq.cloudamqp.com/urfvnqok"))
+            self.channel = self.conn.channel()
+            result = self.channel.queue_declare('', exclusive=True)
+            queue_name = result.method.queue
+            message = ' '
+            for key in keys:
+                message = key + message
+                self.channel.queue_bind(exchange=self.exchange_name, queue=queue_name, routing_key=key)
 
-        self.channel.basic_consume(queue=queue_name, on_message_callback=callback, auto_ack=True)
-        try:
-            self.channel.start_consuming()
-        except pika.exceptions.ConnectionClosed:
-            LOGGER.info('Connection closed. Recovering')
-            continue
-        except KeyboardInterrupt:
-            self.channel.stop_consuming()
+            self.channel.basic_consume(queue=queue_name, on_message_callback=callback, auto_ack=True)
+            try:
+                self.channel.start_consuming()
+            except pika.exceptions.ConnectionClosed:
+                LOGGER.info('Connection closed. Recovering')
+                continue
+            except KeyboardInterrupt:
+                self.channel.stop_consuming()
 
     def __enter__(self):
         return self
