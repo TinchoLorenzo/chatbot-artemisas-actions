@@ -67,7 +67,7 @@ def start_consumer():
 		obj = json.loads(body.decode())
 		url = obj["url"]
 		coll = db.events
-		url = "https://botdisenio.herokuapp.com/webhooks/my_connector/webhook/"
+		#url = "https://botdisenio.herokuapp.com/webhooks/my_connector/webhook/"
 		myjson = {"message": "Hola", "sender": "Chatbot-Artemisas"}
 		requests_response = requests.post(url, json=myjson)
 		myjsonL = {"nombre": 'TiempoLecturaUserStory', 'Items': []}
