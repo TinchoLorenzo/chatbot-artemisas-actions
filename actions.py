@@ -16,11 +16,14 @@ import json
 import pymongo
 import pika
 import threading
+import logging
 
 url = 'https://botdisenio.herokuapp.com/webhooks/my_connector/webhook/'
 client = pymongo.MongoClient("mongodb+srv://mlorenzo:12345qwert@cluster0.5gulk.mongodb.net/")
 db = client['mydatabase']
-
+LOG_FORMAT = ('%(levelname) -10s %(asctime)s %(name) -30s %(funcName) '
+              '-35s %(lineno) -5d: %(message)s')
+LOGGER = logging.getLogger(__name__)
 
 class PikaMassenger():
 
@@ -40,7 +43,13 @@ class PikaMassenger():
             self.channel.queue_bind(exchange=self.exchange_name, queue=queue_name, routing_key=key)
 
         self.channel.basic_consume(queue=queue_name, on_message_callback=callback, auto_ack=True)
-        self.channel.start_consuming()
+        try:
+            self.channel.start_consuming()
+        except pika.exceptions.ConnectionClosed:
+            LOGGER.info('Connection closed. Recovering')
+            continue
+        except KeyboardInterrupt:
+            self.channel.stop_consuming()
 
     def __enter__(self):
         return self
@@ -54,6 +63,7 @@ def start_consumer():
 	def callback(ch, method, properties, body):
 		obj = json.loads(body.decode())
 		url = obj["url"]
+        LOGGER.info(url)
 		coll = db.events
 		url = "https://botdisenio.herokuapp.com/webhooks/my_connector/webhook/"
 		myjson = {"message": "Hola", "sender": "Chatbot-Artemisas"}
