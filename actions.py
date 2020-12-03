@@ -17,12 +17,9 @@ import pymongo
 import pika
 import threading
 
-url = 'https://botdisenio.herokuapp.com/webhooks/my_connector/webhook/' 
+url = 'https://botdisenio.herokuapp.com/webhooks/my_connector/webhook/'
 client = pymongo.MongoClient("mongodb+srv://mlorenzo:12345qwert@cluster0.5gulk.mongodb.net/")
 db = client['mydatabase']
-
-
-
 
 
 class PikaMassenger():
@@ -32,80 +29,81 @@ class PikaMassenger():
     def __init__(self, *args, **kwargs):
         self.conn = pika.BlockingConnection(pika.URLParameters("amqps://urfvnqok:kDPF6YteXqwoKytSirWyl_HAisUjTGYl@woodpecker.rmq.cloudamqp.com/urfvnqok"))
         self.channel = self.conn.channel()
-        #self.channel.exchange_declare(exchange=self.exchange_name, exchange_type='topic')
+        # self.channel.exchange_declare(exchange=self.exchange_name, exchange_type='topic')
 
     def consume(self, keys, callback):
         result = self.channel.queue_declare('', exclusive=True)
         queue_name = result.method.queue
         message = ' '
         for key in keys:
-            message= key + message
-            self.channel.queue_bind(exchange=self.exchange_name, queue= queue_name, routing_key=key)
-            
-        self.channel.basic_consume(queue=queue_name, on_message_callback=callback, auto_ack = True)
-        self.channel.start_consuming()
+            message = key + message
+            self.channel.queue_bind(exchange=self.exchange_name, queue=queue_name, routing_key=key)
 
+        self.channel.basic_consume(queue=queue_name, on_message_callback=callback, auto_ack=True)
+        self.channel.start_consuming()
 
     def __enter__(self):
         return self
 
-
     def __exit__(self, exc_type, exc_value, traceback):
         self.conn.close()
 
+
 def start_consumer():
 
-    
-    def pasarDatos(url, tipo):
-        coll = db.eventos
-        myjsonL ={ "nombre" : tipo, 'Items':[]}
-        if (tipo == "TiempoTrabajoUserStory"):
-            tareas = {}
-            #Habria que cambiar el nombre del evento y usar tipo
-            for i in coll.find({'event': 'Tarea.Cambio.Estado' },{'message': 1, '_id': 0, 'time':1 }):
-                js = json.loads(i['message']) #Como message es string lo paso a json asi puedo usar los indices
-                if (js['tarea_id'] not in tareas.keys()): #si no esta la agrego con un diccionario vacio
-                    tareas[js['tarea_id']] = {}
-                if (js['estado'] == 'InProgress'): #Los cambios a to do se ignoran
-                    tareas[js['tarea_id']].update({'InProgress': i['time']},)
-                if (js['estado'] == 'Done'):
-                    tareas[js['tarea_id']].update({'Done': i['time'],'user': js['user_id']})
-            for i in tareas:
-                if ('Done' in tareas[i].keys()): #Las que no fueron movidas a 'Done' no se pasan como dato
-                    sec = abs((datetime.strptime(tareas[i]['Done'],'%Y-%m-%d %H:%M:%S') - datetime.strptime(tareas[i]['InProgress'],'%Y-%m-%d %H:%M:%S')))
-                myjsonL['Items'].insert(0,{'user_id':tareas[i]['user'], 'value':sec.seconds})
-        else:
-            for i in coll.find({'event': tipo },{'message': 1, '_id': 0 }):
-                myjsonL['Items'].insert(0,json.loads(i['message']))
-        myjson = {
-            "message": "Enviado",
-            "sender": "Chatbot-Artemisas",
-            "metadata":{
-                "name" : str(myjsonL)   
-            }
-        }
-        requests_response = requests.post(url, json = myjson)
-        return "Numero de datos de {} enviados: {}\n".format(tipo, len(myjsonL['items']))
+	def callback(ch, method, properties, body):
+		obj = json.loads(body.decode())
+		url = obj["url"]
+		coll = db.events
+		url = "https://botdisenio.herokuapp.com/webhooks/my_connector/webhook/"
+		myjson = {"message": "Hola", "sender": "Chatbot-Artemisas"}
+		requests_response = requests.post(url, json=myjson)
+		myjsonL = {"nombre": 'TiempoLecturaUserStory', 'Items': []}
+		for i in coll.find({'event': 'TiempoLecturaUserStory'}, {'message': 1, '_id': 0}):
+			myjsonL['Items'].insert(0, json.loads(i['message']))
+		myjson['message'] = "Enviado"
+		myjson['metadata'] = {"name": str(myjsonL)}
+		requests_response = requests.post(url, json=myjson)
 
-    def callback(ch, method, properties, body):
-        obj = json.loads(body.decode())
-        url = obj["url"]
-        print(url)
-        url="https://botdisenio.herokuapp.com/webhooks/my_connector/webhook/"
-        myjson = {"message": "Bruno como andas ","sender": "Chatbot-Artemisas"}
-        requests_response = requests.post(url, json = myjson)
-        #pasarDatos(url, "TiempoLecturaUserStory")
-        #pasarDatos(url, "TiempoTrabajoUserStory")
-        #pasarDatos(url, "Recurso")
-        #pasarDatos(url, "ParticipacionesMeetings")
+		tareas = {}
+		myjsonT = {"nombre": 'TiempoTrabajoUserStory', 'Items': []}
+		for i in coll.find({'event': 'Tarea.Cambio.Estado'}, {'message': 1, '_id': 0, 'time': 1}):
+			# Como message es string lo paso a json asi puedo usar los indices
+			js = json.loads(i['message'])
+			if (js['tarea_id'] not in tareas.keys()):  # si no esta la agrego con un diccionario vacio
+				tareas[js['tarea_id']] = {}
+			if (js['estado'] == 'InProgress'):  # Los cambios a to do se ignoran
+				tareas[js['tarea_id']].update({'InProgress': i['time']},)
+			if (js['estado'] == 'Done'):
+				tareas[js['tarea_id']].update(
+					{'Done': i['time'], 'user': js['user_id']})
+		for i in tareas:
+			# Las que no fueron movidas a 'Done' no se pasan como dato
+			if ('Done' in tareas[i].keys()):
+				sec = abs((datetime.strptime(tareas[i]['Done'], '%Y-%m-%d %H:%M:%S') - datetime.strptime(tareas[i]['InProgress'], '%Y-%m-%d %H:%M:%S')))
+				myjsonT['Items'].insert(0, {'user_id': tareas[i]['user'], 'value': sec.seconds})
+		myjson['metadata'] = {"name": str(myjsonT)}
+		requests_response = requests.post(url, json=myjson)
 
-    with PikaMassenger() as consumer:
-        print("startin pikamassenger")
-        consumer.consume(keys=["Chatbot.PedidoConeccion"], callback=callback)
+		myjsonR = {"nombre": 'Recurso', 'Items': []}
+		for i in coll.find({'event': 'Recurso.Utilizado'}, {'message': 1, '_id': 0}):
+			myjsonR['Items'].insert(0, json.loads(i['message']))
+		myjson['metadata'] = {"name": str(myjsonR)}
+		requests_response = requests.post(url, json=myjson)
+
+		myjsonM = {}
+		myjson['metadata'] = {"name": str(myjsonR)}
+		requests_response = requests.post(url, json=myjson)
+
+
+	with PikaMassenger() as consumer:
+		consumer.consume(keys=["Chatbot.PedidoConeccion"], callback=callback)
 
 
 consumer_thread = threading.Thread(target=start_consumer)
 consumer_thread.start()
+
+
 class ActionOnlineMembers(Action):
 
 	def name(self) -> Text:
@@ -114,16 +112,12 @@ class ActionOnlineMembers(Action):
 	def run(self, dispatcher: CollectingDispatcher,
 	tracker: Tracker,
 	domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
-		f = open('online.json',) 
-		dataOnline = json.load(f) 
+		coll = db.online 
 		rta = ""
-		for i in dataOnline['online']:
-			#print("{} se encuentra en {}".format(i['name'], i['sala']))        
+		for i in coll.find():      
 			rta += "{} se encuentra en {} \n".format(i['name'], i['sala'])
-		#dispatcher.utter_message(text="Se ejecuto accion online members: {}!".format(r.text))
 		dispatcher.utter_message(text=rta)
 		return []
-
 
 
 class ActionTareasToDo(Action):
@@ -134,11 +128,10 @@ class ActionTareasToDo(Action):
 	def run(self, dispatcher: CollectingDispatcher,
 	tracker: Tracker,
 	domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
-		f = open('tareas.json',) 
-		dataOnline = json.load(f)
+		coll = db.tareas
 		rta = ""
 		rta += "Las tareas en estado to do son:\n"
-		for i in dataOnline['to_do']:       
+		for i in coll.find({ "estado": "to_do"}):       
 			rta+="--Tarea: {}. Nombre {}.\n Descripcion: {}.\n Criterios de aceptacion: {}\n".format(i['id_tarea'],i['nombre'], i['descripcion'], i['criterios de aceptacion'])
 		rta += "\nQuieres asignarte alguna tarea?"
 		dispatcher.utter_message(text=rta)
@@ -152,11 +145,10 @@ class ActionTareasInProgress(Action):
 	def run(self, dispatcher: CollectingDispatcher,
 	tracker: Tracker,
 	domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
-		f = open('tareas.json',)
-		dataOnline = json.load(f)
+		coll = db.tareas
 		rta = ""
 		rta += "Las tareas en estado in progress son:\n"
-		for i in dataOnline['in_progress']:     
+		for i in coll.find({"estado" : "in_progress"}):     
 			rta+="--Tarea: {}. Nombre {}.\n Descripcion: {}.\n Criterios de aceptacion: {}\n Participantes: {}\n".format(i['id_tarea'],i['nombre'], i['descripcion'], i['criterios de aceptacion'],i['participantes'])
 		dispatcher.utter_message(text=rta)
 		return []
@@ -169,11 +161,10 @@ class ActionTareasDone(Action):
 	def run(self, dispatcher: CollectingDispatcher,
 	tracker: Tracker,
 	domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
-		f = open('tareas.json',) 
-		dataOnline = json.load(f)
+		coll = db.tareas
 		rta = ""
 		rta += "Las tareas en estado done son:\n"
-		for i in dataOnline['done']:
+		for i in coll.find({"estado" : "done"}):
 			rta+="--Tarea: {}. Nombre {}.\n Descripcion: {}.\n Criterios de aceptacion: {}\n".format(i['id_tarea'],i['nombre'], i['descripcion'], i['criterios de aceptacion'])
 		dispatcher.utter_message(text=rta)
 		return []
@@ -187,12 +178,9 @@ class ActionOrganizacionActual(Action):
 	def run(self, dispatcher: CollectingDispatcher,
 	tracker: Tracker,
 	domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
-		f = open('organizacion.json',) 
-		dataOnline = json.load(f) 
-		dataOnline = dataOnline['sprint']
+		coll = db.grupos
 		rta = ""
-		rta += "En el sprint {}, las tareas estan organizadas segun los siguientes grupos:\n".format(dataOnline['numero'])
-		for i in dataOnline['equipos']:
+		for i in coll.find():
 			rta += "--Grupo: {}. Cuyo lider es: {}".format(i['grupo'], i['lider'])
 		dispatcher.utter_message(text=rta)
 		return []
@@ -206,15 +194,15 @@ class ActionMiTarea(Action):
 	def run(self, dispatcher: CollectingDispatcher,
 	tracker: Tracker,
 	domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
-		f = open('tareas.json',)
-		dataOnline = json.load(f)
-		#dispatcher.utter_message(text=tracker.sender_id)
+		coll = db.tareas
+		# dispatcher.utter_message(text=tracker.sender_id)
 		asignada = False
-		user = "Mercedes"  #Alguna forma de obtener el id del usuario
-		for i in dataOnline['in_progress']:
-			if (user in i['participantes']):
-				dispatcher.utter_message(text="Tienes la tarea {} asignada para hoy.".format(i['nombre']))
-				asignada = True
+		user = str(tracker.get("sender_id")) #Alguna forma de obtener el id del usuario
+		for i in coll.find({"estado" : "in_progress"}):
+			if (asignada == False):
+				if (user in i['participantes']):
+					dispatcher.utter_message(text="Tienes la tarea {} asignada para hoy.".format(i['nombre']))
+					asignada = True
 		if(asignada == False):
 			dispatcher.utter_message(text="No tienes ninguna tarea asignada, debes revisar las tareas en estado to do y tomar una")
 		return []
@@ -228,24 +216,22 @@ class ActionAsignarTarea(Action):
 	def run(self, dispatcher: CollectingDispatcher,
 	tracker: Tracker,
 	domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
-		f = open('tareas.json',)
-		dataOnline = json.load(f)
+		coll = db.tareas
 		nombre= ''
 		descrip = ''
 		criterios = []
-		participantes = ['Mercedes']
+		participantes = [tracker.get("sender_id")]
 		if (tracker.get_slot("id_tarea") != None):
 			id = tracker.get_slot("id_tarea")
-			aux = dataOnline['to_do']
-			for i in aux:
+			for i in coll.find({"estado": "to_do"}):
 				if (i['id_tarea'] == id):
 					nombre = i['nombre']
 					descrip = i['descripcion']
 					criterios = i['criterios de aceptacion']
-					dataOnline['to_do'].remove(i)
+					coll.delete_one({"id_tarea" : id}) ##ME QUEDE ACA TENGO QUE BORRAR E INSERTAR ABAJO
 					break
 		if (nombre != ''):
-			dataOnline['in_progress'].append({
+			coll.insert_one({
 				'id_tarea':id,
 				'nombre':nombre,
 				'descripcion':descrip,
@@ -254,9 +240,7 @@ class ActionAsignarTarea(Action):
 			})
 			dispatcher.utter_message(text='La tarea con id: {} fue correctamente asignada'.format(id))
 		else:
-			dispatcher.utter_message(text='No hay una tarea con ese id')	
-		with open('tareas.json', 'w') as outfile:
-			json.dump(dataOnline, outfile)
+			dispatcher.utter_message(text='No hay una tarea con ese id')
 		return []
 
 
@@ -270,7 +254,7 @@ class ActionNuevaReunion(Action):
 	def run(self, dispatcher: CollectingDispatcher,
 	tracker: Tracker,
 	domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
-		#dispatcher.utter_message(text=tracker.sender_id)
+		# dispatcher.utter_message(text=tracker.sender_id)
 		
 		hora = tracker.get_slot("horario")
 		if (hora != None):
@@ -364,7 +348,7 @@ class ActionProgramarDailys(Action):
 					'descripcion':"Reunion daily"
 					}
 				coll.insert_one(my_dict)
-				#dispatcher.utter_message(text="Daily reunion el dia {} a las {}:{}hs".format(tomorrow.strftime("%x"),tomorrow.strftime("%H"),tomorrow.strftime("%M")))
+				# dispatcher.utter_message(text="Daily reunion el dia {} a las {}:{}hs".format(tomorrow.strftime("%x"),tomorrow.strftime("%H"),tomorrow.strftime("%M")))
 				tomorrow += timedelta(days = 1)
 			my_dict = {
 				'numero': coll.count(),
@@ -399,7 +383,7 @@ class ActionProgramarReuniones(Action):
 					'horario': "{}:{}".format(tomorrow.strftime("%H"),tomorrow.strftime("%H"))
 					}
 				coll.insert_one(my_dict)
-				#dispatcher.utter_message(text="Daily reunion el dia {} a las {}:{}hs".format(tomorrow.strftime("%x"),tomorrow.strftime("%H"),tomorrow.strftime("%M")))
+				# dispatcher.utter_message(text="Daily reunion el dia {} a las {}:{}hs".format(tomorrow.strftime("%x"),tomorrow.strftime("%H"),tomorrow.strftime("%M")))
 				tomorrow += timedelta(days = 1)
 			dispatcher.utter_message(text="Las reuniones fueron agendadas con exito")
 		return []
@@ -443,101 +427,4 @@ class ActionEmpezarReunion(Action):
 			dispatcher.utter_message(text= 'Da comienzo la reunion: {} \nDescripcion: {}'.format(res['numero'],res['descripcion']))
 		else:
 			dispatcher.utter_message(text= 'No hay una reunion cargada con ese id')
-		return []
-
-class ActionPasarDatos(Action):
-
-	def name(self) -> Text:
-		return "action_pasar_datos"
-
-	def run(self, dispatcher: CollectingDispatcher,
-	tracker: Tracker,
-	domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
-		myobj = {
-			"message": "hi",
-			"sender": "usuario"
-		}
-		request_response = request.post(url, json = myobj)
-		coll = db.datos
-		mensaje = 'Enviado'
-		consulta = db.datos.find_one({"nombre" : "Usuarios"})
-		if (consulta != None):
-			myjson = {
-			'nombre' : consulta['nombre'],
-			'Items' : consulta['Items']
-			}
-		else: 
-			myjson = ''
-		myobj = {
-			"message": str(mensaje),
-			"sender": "usuario",
-			"metadata":{
-				"name": str(myjson)
-			}
-		}
-		request_response = requests.post(url, json = myobj)
-		consulta = db.datos.find_one({"nombre" : "TiempoLecturaUserStory"})
-		if (consulta != None):
-			myjson = {
-			'nombre' : consulta['nombre'],
-			'Items' : consulta['Items']
-			}
-		else: 
-			myjson = ''
-		myobj = {
-			"message": str(mensaje),
-			"sender": "usuario",
-			"metadata":{
-				"name": str(myjson)
-			}
-		}
-		request_response = requests.post(url, json = myobj)
-		consulta = db.datos.find_one({"nombre" : "TiempoTrabajoUserStory"})
-		if (consulta != None):
-			myjson = {
-			'nombre' : consulta['nombre'],
-			'Items' : consulta['Items']
-			}
-		else: 
-			myjson = ''
-		myobj = {
-			"message": str(mensaje),
-			"sender": "usuario",
-			"metadata":{
-				"name": str(coll.find(myjson))
-			}
-		}
-		request_response = requests.post(url, json = myobj)
-		consulta = db.datos.find_one({"nombre" : "Recurso"})
-		if (consulta != None):
-			myjson = {
-			'nombre' : consulta['nombre'],
-			'Items' : consulta['Items']
-			}
-		else: 
-			myjson = ''
-		myobj = {
-			"message": str(mensaje),
-			"sender": "usuario",
-			"metadata":{
-				"name": str(myjson)
-			}
-		}
-		request_response = requests.post(url, json = myobj)
-		consulta = db.datos.find_one({"nombre" : "ParticipacionesMeetings"})
-		if (consulta != None):
-			myjson = {
-			'nombre' : consulta['nombre'],
-			'Items' : consulta['Items']
-			}
-		else: 
-			myjson = ''
-		myobj = {
-			"message": str(mensaje),
-			"sender": "usuario",
-			"metadata":{
-				"name": str(myjson)
-			}
-		}
-		request_response = requests.post(url, json = myobj)
 		return []
