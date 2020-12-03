@@ -21,8 +21,7 @@ import logging
 url = 'https://botdisenio.herokuapp.com/webhooks/my_connector/webhook/'
 client = pymongo.MongoClient("mongodb+srv://mlorenzo:12345qwert@cluster0.5gulk.mongodb.net/")
 db = client['mydatabase']
-LOG_FORMAT = ('%(levelname) -10s %(asctime)s %(name) -30s %(funcName) '
-              '-35s %(lineno) -5d: %(message)s')
+LOG_FORMAT = ('%(levelname) -10s %(asctime)s %(name) -30s %(funcName) ''-35s %(lineno) -5d: %(message)s')
 LOGGER = logging.getLogger(__name__)
 
 class PikaMassenger():
