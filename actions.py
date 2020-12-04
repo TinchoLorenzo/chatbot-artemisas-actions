@@ -16,13 +16,12 @@ import json
 import pymongo
 import pika
 import threading
-import logging
 
 url = 'https://botdisenio.herokuapp.com/webhooks/my_connector/webhook/'
-client = pymongo.MongoClient("mongodb+srv://mlorenzo:12345qwert@cluster0.5gulk.mongodb.net/")
-db = client['mydatabase']
-LOG_FORMAT = ('%(levelname) -10s %(asctime)s %(name) -30s %(funcName) ''-35s %(lineno) -5d: %(message)s')
-LOGGER = logging.getLogger(__name__)
+client = pymongo.MongoClient(
+    "mongodb+srv://sofia:sofia1234@cluster0.034ks.mongodb.net/ArtemisasSwam?retryWrites=true&w=majority")
+db = client['ArtemisasSwam']
+
 
 class PikaMassenger():
 
@@ -40,7 +39,7 @@ class PikaMassenger():
             self.channel = self.conn.channel()
             result = self.channel.queue_declare('', exclusive=True)
             queue_name = result.method.queue
-            message = ' '
+            message = ''
             for key in keys:
                 message = key + message
                 self.channel.queue_bind(exchange=self.exchange_name, queue=queue_name, routing_key=key)
@@ -61,13 +60,15 @@ class PikaMassenger():
         self.conn.close()
 
 
+
 def start_consumer():
 
 	def callback(ch, method, properties, body):
 		obj = json.loads(body.decode())
 		url = obj["url"]
+		print(url)
 		coll = db.events
-		#url = "https://botdisenio.herokuapp.com/webhooks/my_connector/webhook/"
+		url = "https://botdisenio.herokuapp.com/webhooks/my_connector/webhook/"
 		myjson = {"message": "Hola", "sender": "Chatbot-Artemisas"}
 		requests_response = requests.post(url, json=myjson)
 		myjsonL = {"nombre": 'TiempoLecturaUserStory', 'Items': []}
@@ -109,6 +110,7 @@ def start_consumer():
 
 
 	with PikaMassenger() as consumer:
+		print("startin pikamassenger")
 		consumer.consume(keys=["Chatbot.PedidoConeccion"], callback=callback)
 
 
@@ -140,11 +142,23 @@ class ActionTareasToDo(Action):
 	def run(self, dispatcher: CollectingDispatcher,
 	tracker: Tracker,
 	domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
-		coll = db.tareas
 		rta = ""
 		rta += "Las tareas en estado to do son:\n"
-		for i in coll.find({ "estado": "to_do"}):       
-			rta+="--Tarea: {}. Nombre {}.\n Descripcion: {}.\n Criterios de aceptacion: {}\n".format(i['id_tarea'],i['nombre'], i['descripcion'], i['criterios de aceptacion'])
+		db = client.get_database("mydatabase")
+		coll = db.events
+		tareas = {}
+		for i in coll.find({'event': 'Tarea.Cambio.Estado'}, {'message': 1, '_id': 0, 'time': 1}):
+			# Como message es string lo paso a json asi puedo usar los indices
+			js = json.loads(i['message'])
+			if (js['tarea_id'] not in tareas.keys()):
+				tareas[js['tarea_id']] = {"user": js['user_id'], "estado": js['estado'],"fecha": datetime.strptime(i['time'], '%Y-%m-%d %H:%M:%S')}
+			else:
+				if(tareas[js['tarea_id']]['fecha'] < datetime.strptime(i['time'], '%Y-%m-%d %H:%M:%S')):
+					tareas[js['tarea_id']]['fecha'] = datetime.strptime(i['time'], '%Y-%m-%d %H:%M:%S')
+					tareas[js['tarea_id']]['estado'] = js['estado']
+		for i in tareas:
+			if (tareas[i]['estado'] == 'ToDo'):
+				rta += "{} \n".format(i)
 		rta += "\nQuieres asignarte alguna tarea?"
 		dispatcher.utter_message(text=rta)
 		return []
@@ -157,11 +171,23 @@ class ActionTareasInProgress(Action):
 	def run(self, dispatcher: CollectingDispatcher,
 	tracker: Tracker,
 	domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
-		coll = db.tareas
 		rta = ""
 		rta += "Las tareas en estado in progress son:\n"
-		for i in coll.find({"estado" : "in_progress"}):     
-			rta+="--Tarea: {}. Nombre {}.\n Descripcion: {}.\n Criterios de aceptacion: {}\n Participantes: {}\n".format(i['id_tarea'],i['nombre'], i['descripcion'], i['criterios de aceptacion'],i['participantes'])
+		db = client.get_database("mydatabase")
+		coll = db.events
+		tareas = {}
+		for i in coll.find({'event': 'Tarea.Cambio.Estado'}, {'message': 1, '_id': 0, 'time': 1}):
+			# Como message es string lo paso a json asi puedo usar los indices
+			js = json.loads(i['message'])
+			if (js['tarea_id'] not in tareas.keys()):
+				tareas[js['tarea_id']] = {"user": js['user_id'], "estado": js['estado'],"fecha": datetime.strptime(i['time'], '%Y-%m-%d %H:%M:%S')}
+			else:
+				if(tareas[js['tarea_id']]['fecha'] < datetime.strptime(i['time'], '%Y-%m-%d %H:%M:%S')):
+					tareas[js['tarea_id']]['fecha'] = datetime.strptime(i['time'], '%Y-%m-%d %H:%M:%S')
+					tareas[js['tarea_id']]['estado'] = js['estado']
+		for i in tareas:
+			if (tareas[i]['estado'] == 'InProgress'):
+				rta += "{} \n".format(i)
 		dispatcher.utter_message(text=rta)
 		return []
 
@@ -173,11 +199,23 @@ class ActionTareasDone(Action):
 	def run(self, dispatcher: CollectingDispatcher,
 	tracker: Tracker,
 	domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
-		coll = db.tareas
 		rta = ""
 		rta += "Las tareas en estado done son:\n"
-		for i in coll.find({"estado" : "done"}):
-			rta+="--Tarea: {}. Nombre {}.\n Descripcion: {}.\n Criterios de aceptacion: {}\n".format(i['id_tarea'],i['nombre'], i['descripcion'], i['criterios de aceptacion'])
+		db = client.get_database("mydatabase")
+		coll = db.events
+		tareas = {}
+		for i in coll.find({'event': 'Tarea.Cambio.Estado'}, {'message': 1, '_id': 0, 'time': 1}):
+			# Como message es string lo paso a json asi puedo usar los indices
+			js = json.loads(i['message'])
+			if (js['tarea_id'] not in tareas.keys()):
+				tareas[js['tarea_id']] = {"user": js['user_id'], "estado": js['estado'],"fecha": datetime.strptime(i['time'], '%Y-%m-%d %H:%M:%S')}
+			else:
+				if(tareas[js['tarea_id']]['fecha'] < datetime.strptime(i['time'], '%Y-%m-%d %H:%M:%S')):
+					tareas[js['tarea_id']]['fecha'] = datetime.strptime(i['time'], '%Y-%m-%d %H:%M:%S')
+					tareas[js['tarea_id']]['estado'] = js['estado']
+		for i in tareas:
+			if (tareas[i]['estado'] == 'Done'):
+				rta += "{} \n".format(i)
 		dispatcher.utter_message(text=rta)
 		return []
 
@@ -206,17 +244,31 @@ class ActionMiTarea(Action):
 	def run(self, dispatcher: CollectingDispatcher,
 	tracker: Tracker,
 	domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
-		coll = db.tareas
 		# dispatcher.utter_message(text=tracker.sender_id)
 		asignada = False
-		user = str(tracker.get("sender_id")) #Alguna forma de obtener el id del usuario
-		for i in coll.find({"estado" : "in_progress"}):
-			if (asignada == False):
-				if (user in i['participantes']):
-					dispatcher.utter_message(text="Tienes la tarea {} asignada para hoy.".format(i['nombre']))
+		user = str((tracker.current_state())["sender_id"]) #Alguna forma de obtener el id del usuario
+		rta = "No tienes ninguna tarea asignada, debes revisar las tareas en estado to do y asignarte una"
+		db = client.get_database("mydatabase")
+		coll = db.events
+		tarea = ""
+		tareas = {}
+		for i in coll.find({'event': 'Tarea.Cambio.Estado'}, {'message': 1, '_id': 0, 'time': 1}):
+			# Como message es string lo paso a json asi puedo usar los indices
+			js = json.loads(i['message'])
+			if (js['tarea_id'] not in tareas.keys()):
+				tareas[js['tarea_id']] = {"user": js['user_id'], "estado": js['estado'],"fecha": datetime.strptime(i['time'], '%Y-%m-%d %H:%M:%S')}
+			else:
+				if(tareas[js['tarea_id']]['fecha'] < datetime.strptime(i['time'], '%Y-%m-%d %H:%M:%S')):
+					tareas[js['tarea_id']]['fecha'] = datetime.strptime(i['time'], '%Y-%m-%d %H:%M:%S')
+					tareas[js['tarea_id']]['estado'] = js['estado']
+		for i in tareas:
+			if (tareas[i]['estado'] == 'InProgress'):
+				if (tareas[i]['estado']== user):
 					asignada = True
-		if(asignada == False):
-			dispatcher.utter_message(text="No tienes ninguna tarea asignada, debes revisar las tareas en estado to do y tomar una")
+					tarea = i					
+		if (asignada):
+			rta += "Estas asignado a la tarea: {} \n".format(i)
+		dispatcher.utter_message(text=rta)
 		return []
 
 
@@ -232,7 +284,7 @@ class ActionAsignarTarea(Action):
 		nombre= ''
 		descrip = ''
 		criterios = []
-		participantes = [tracker.get("sender_id")]
+		participantes = [str((tracker.current_state())["sender_id"])]
 		if (tracker.get_slot("id_tarea") != None):
 			id = tracker.get_slot("id_tarea")
 			for i in coll.find({"estado": "to_do"}):
@@ -266,7 +318,6 @@ class ActionNuevaReunion(Action):
 	def run(self, dispatcher: CollectingDispatcher,
 	tracker: Tracker,
 	domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
-		# dispatcher.utter_message(text=tracker.sender_id)
 		
 		hora = tracker.get_slot("horario")
 		if (hora != None):
